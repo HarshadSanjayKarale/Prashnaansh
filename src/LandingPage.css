@@ -30,7 +30,7 @@ html {
   justify-content: center;
   align-items: center;
   /* border-bottom: 1px solid #000; */
-  margin-bottom: 20px;
+  margin: 100px;
 }
 
 .landing-page .logo {
@@ -84,4 +84,30 @@ html {
 .system-discription i {
   color: #ff6f00;
   text-decoration: underline;
+}
+
+.typing-effect {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid #09aad3; /* Cursor effect */
+  animation: typing 3s steps(40, end), blink 0.5s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 20ch; /* Adjust this based on the total text length */
+  }
+}
+
+@keyframes blink {
+  from {
+    border-right-color: #09aad3;
+  }
+  to {
+    border-right-color: transparent;
+  }
 }

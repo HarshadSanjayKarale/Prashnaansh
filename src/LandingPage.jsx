@@ -18,12 +18,10 @@ function LandingPage() {
           <img src={logo} class="logo" alt="College Logo" />
           <img src={logo1} class="logo1" alt="System logo" />
         </div>
-        <h1 className="system-name">
-          Welcome to <span className="system-name-main">Exam Engine</span>
-        </h1>
-        <p className="system-discription">
-          Click <i>anywhere</i> on the screen to proceed to the next step.
-        </p>
+        <h1 className="system-name typing-effect">
+  Welcome to <span className="system-name-main">Exam Engine</span>
+</h1>
+
       </div>
     </div>
   );
