@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import "./MainPage.css";
 import logo from "./assets/logo.png";
+import JSZip from 'jszip';
 
 const API_URL = "http://localhost:8000";
 
@@ -19,6 +20,70 @@ const MainPage = () => {
   const [isGenerated, setIsGenerated] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [lastGeneratedData, setLastGeneratedData] = useState(null);
+  const [normal, setNormal] = useState(null);
+  const [master, setMaster] = useState(null);
+  
+
+
+  const handleDownloadFromZip = async (response) => {
+    const zipBlob = await response.blob();
+    const zip = new JSZip();
+    
+    try {
+      const loadedZip = await zip.loadAsync(zipBlob);
+      
+      // Find the appropriate file in the zip based on paperType
+      const files = Object.values(loadedZip.files);
+      const targetFile1 = files.find(file => {
+        const filename = file.name.toLowerCase();
+        return filename.includes('master') 
+      });
+
+      const targetFile2 = files.find(file => {
+        const filename = file.name.toLowerCase();
+        return !filename.includes('master');
+      });
+
+      if (!targetFile1) {
+        throw new Error(`Master paper not found in the zip file`);
+      }
+      if (!targetFile2) {
+        throw new Error(`paper not found in the zip file`);
+      }
+
+
+      // Extract and download the specific file
+      const content = await targetFile1.async('blob');
+      
+      const url = window.URL.createObjectURL(content);
+     
+      setMaster(url);
+
+       // Extract and download the specific file
+       const content2 = await targetFile2.async('blob');
+       
+       const url2 = window.URL.createObjectURL(content2);
+       
+      setNormal(url2);
+
+
+    } catch (error) {
+      console.error('Error extracting file from zip:', error);
+      alert(`Error downloading ${paperType} paper: ${error.message}`);
+    }
+  };
+
+  const Download = async (url,paperType) => {
+    
+    const filename2 = `QuestionPaper_Set${selectedSet}_${paperType}.docx`;
+    const link2 = document.createElement('a');
+       link2.href = url;
+       link2.setAttribute('download', filename2);
+       document.body.appendChild(link2);
+       link2.click();
+       link2.remove();
+       window.URL.revokeObjectURL(url)
+  }
 
   const readExcelFile = (file) => {
     const reader = new FileReader();
@@ -147,9 +212,10 @@ const MainPage = () => {
         throw new Error(errorData.error || "Failed to generate question paper");
       }
 
-      await downloadFile(response);
       setLastGeneratedData({ file, selectedSet });
       setIsGenerated(true);
+      handleDownloadFromZip(response, 'master');
+      
     } catch (error) {
       console.error("Error generating question paper:", error);
       alert(error.message);
@@ -303,15 +369,26 @@ const MainPage = () => {
           </button>
 
           {isGenerated && (
+          <>
             <button
               className="button secondary-button"
-              onClick={handleSendToBackend}
+              onClick={() => Download(normal,'Normal') }
               disabled={isProcessing}
             >
-              Download Question Papers
+              Download Normal Paper
             </button>
-          )}
+            <button
+              className="button secondary-button"
+              onClick={() => Download(master,'Master') }
+              disabled={isProcessing}
+            >
+              Download Master Paper
+            </button>
+            </>)}
         </div>
+            <h4 align="end">
+            Developed by @SHAAN
+            </h4>
       </div>
     </div>
   );
