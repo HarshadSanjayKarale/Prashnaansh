@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import "./MainPage.css";
 import logo from "./assets/logo.png";
 
-const API_URL = 'http://localhost:8000';
+const API_URL = "http://localhost:8000";
 
 const MainPage = () => {
   const [file, setFile] = useState(null);
@@ -27,17 +27,19 @@ const MainPage = () => {
         const data = new Uint8Array(e.target.result);
         const wb = XLSX.read(data, { type: "array" });
         setWorkbook(wb);
-        
+
         const sheets = wb.SheetNames;
         setSheetNames(sheets);
-        
+
         if (sheets.length > 0) {
           setCurrentSheet(sheets[0]);
           loadSheetData(wb, sheets[0]);
         }
       } catch (error) {
         console.error("Error parsing Excel file:", error);
-        alert("Error reading the Excel file. Please make sure it's a valid Excel document.");
+        alert(
+          "Error reading the Excel file. Please make sure it's a valid Excel document."
+        );
       }
     };
 
@@ -72,9 +74,11 @@ const MainPage = () => {
   };
 
   const handleFileSelect = (selectedFile) => {
-    if (selectedFile && 
-        (selectedFile.name.endsWith(".xlsx") || 
-         selectedFile.name.endsWith(".xls"))) {
+    if (
+      selectedFile &&
+      (selectedFile.name.endsWith(".xlsx") ||
+        selectedFile.name.endsWith(".xls"))
+    ) {
       setFile(selectedFile);
       readExcelFile(selectedFile);
     } else {
@@ -104,15 +108,15 @@ const MainPage = () => {
 
   const downloadFile = async (response) => {
     const blob = await response.blob();
-    const contentDisposition = response.headers.get('content-disposition');
-    const filename = contentDisposition
-      ? contentDisposition.split('filename=')[1].replace(/['"]/g, '')
-      : `QuestionPaper_Set${selectedSet}.docx`;
+    const contentDisposition = response.headers.get("content-disposition");
+    let filename = contentDisposition
+      ? contentDisposition.split("filename=")[1].replace(/['"]/g, "")
+      : `QuestionPaper_Set${selectedSet}.zip`;
 
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', filename);
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -129,24 +133,25 @@ const MainPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('excel_file', file);
-      formData.append('word_file', `QuestionPaper_Set${selectedSet}`);
-      formData.append('set_number', selectedSet); // Set I, Set II, Set III
+      formData.append("excel_file", file);
+      formData.append("word_file", `QuestionPaper_Set${selectedSet}`);
+      formData.append("set_number", selectedSet);
 
       const response = await fetch(`${API_URL}/generate`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate question paper');
+        throw new Error(errorData.error || "Failed to generate question paper");
       }
 
+      await downloadFile(response);
       setLastGeneratedData({ file, selectedSet });
       setIsGenerated(true);
     } catch (error) {
-      console.error('Error generating question paper:', error);
+      console.error("Error generating question paper:", error);
       alert(error.message);
     } finally {
       setIsProcessing(false);
@@ -155,28 +160,31 @@ const MainPage = () => {
 
   const handleDownloadQuestionPaper = async () => {
     if (!lastGeneratedData) {
-      alert('Please generate a question paper first');
+      alert("Please generate a question paper first");
       return;
     }
 
     setIsProcessing(true);
     try {
       const formData = new FormData();
-      formData.append('excel_file', lastGeneratedData.file);
-      formData.append('word_file', `QuestionPaper_Set${lastGeneratedData.selectedSet}`);
+      formData.append("excel_file", lastGeneratedData.file);
+      formData.append(
+        "word_file",
+        `QuestionPaper_Set${lastGeneratedData.selectedSet}`
+      );
 
       const response = await fetch(`${API_URL}/generate`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to download question paper');
+        throw new Error("Failed to download question paper");
       }
 
       await downloadFile(response);
     } catch (error) {
-      console.error('Error downloading question paper:', error);
+      console.error("Error downloading question paper:", error);
       alert(error.message);
     } finally {
       setIsProcessing(false);
@@ -291,25 +299,17 @@ const MainPage = () => {
             onClick={handleSendToBackend}
             disabled={!file || !selectedSet || isProcessing}
           >
-            {isProcessing ? "Processing..." : "Generate Question Paper"}
+            {isProcessing ? "Processing..." : "Generate Question Papers"}
           </button>
 
           {isGenerated && (
-            <>
-              <button
-                className="button secondary-button"
-                onClick={handleDownloadQuestionPaper}
-                disabled={isProcessing}
-              >
-                Question Paper
-              </button>
-              <button
-                className="button secondary-button"
-                disabled={true}
-              >
-                Master Question Paper
-              </button>
-            </>
+            <button
+              className="button secondary-button"
+              onClick={handleSendToBackend}
+              disabled={isProcessing}
+            >
+              Download Question Papers
+            </button>
           )}
         </div>
       </div>

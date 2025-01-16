@@ -577,3 +577,147 @@ def create_word_document_with_images(final_questions, excel_file, word_file, tem
     # Save document
     doc.save(word_file)
     print(f'Question paper has been successfully generated: {word_file}')
+
+
+
+
+
+def apply_table_styles_master(table):
+    # Apply table-wide styles
+    table.style = 'Table Grid'
+    table.alignment = WD_TABLE_ALIGNMENT.LEFT
+
+    # Style the header row
+    for cell in table.rows[0].cells:
+        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = cell.paragraphs[0].runs[0]
+        run.font.bold = True
+        run.font.size = Pt(13)
+
+    # Style data rows
+    for row in table.rows[1:]:
+        for i, cell in enumerate(row.cells):
+            # Center align Q.No., Diff_Level, Blooms_Level, CO, and Marks columns
+            if i in [0, 2, 3, 4, 5]:
+                cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            # Left align Question column
+            else:
+                cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+            # Set font size
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.size = Pt(11)
+
+    # Define widths in inches for the 6 columns
+    widths = [
+        Inches(0.5),   # Q. No.
+        Inches(4.5),   # Question
+        Inches(0.58),  # Diff_Level
+        Inches(0.58),  # Blooms_Level
+        Inches(0.53),  # CO
+        Inches(0.53)   # Marks
+    ]
+    
+    # Apply column widths
+    for row in table.rows:
+        for idx, cell in enumerate(row.cells):
+            cell.width = widths[idx]
+
+def create_word_document_master_with_images(final_questions, excel_file, word_file, template_file, set_number):
+    wb = openpyxl.load_workbook(excel_file)
+    ws = wb['Question Bank']
+    doc = Document(template_file)
+
+    # Replace placeholders
+    replace_placeholders_in_template(doc, excel_file, set_number, 16)
+
+    # Store the widths from the third table before clearing placeholders
+    template_table_widths = None
+    if len(doc.tables) >= 4:
+        template_table_widths = get_column_widths(doc.tables[3])
+        print(f"Retrieved template table widths: {template_table_widths}")
+    else:
+        print("Warning: Third table not found in template. Using default widths.")
+        template_table_widths = [Inches(0.5), Inches(4.5), Inches(0.8), Inches(0.8), Inches(0.53), Inches(0.53)]
+
+    # Clear {{Question Here}} placeholder
+    for para in doc.paragraphs:
+        if "{{Question Here}}" in para.text:
+            para.text = ""
+
+    # Add section for each unit
+    for unit in final_questions['Unit_No'].unique():
+        # Add unit header with proper formatting
+        unit_header = doc.add_paragraph()
+        unit_header.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        unit_run = unit_header.add_run(f"Q. {unit}: Answer the Following")
+        unit_run.font.bold = True
+        unit_run.font.size = Pt(12)
+        unit_header.paragraph_format.space_after = Pt(12)
+
+        # Create and configure table
+        table = doc.add_table(rows=1, cols=6)
+        table.style = 'Table Grid'
+        table.alignment = WD_TABLE_ALIGNMENT.LEFT
+
+        # Add header row with correct headers
+        headers = ['Q. No.', 'Question', 'Difficulty Level', 'Blooms Level', 'CO', 'Marks']
+        for i, header in enumerate(headers):
+            cell = table.rows[0].cells[i]
+            cell.text = header
+            cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            cell.paragraphs[0].runs[0].font.bold = True
+            cell.paragraphs[0].runs[0].font.size = Pt(13)
+
+        # Add questions
+        subquestion = 0
+        unit_questions = final_questions[final_questions['Unit_No'] == unit]
+        for idx, question_row in unit_questions.iterrows():
+            cells = table.add_row().cells
+
+            # Set Q. No. (A, B, C, etc.)
+            cells[0].text = chr(65 + subquestion % 26)
+            cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+            subquestion += 1
+
+            # Add question content
+            question_para = cells[1].paragraphs[0]
+            convert_excel_to_word_with_images_and_equations(ws, question_row.name + 2, question_para)
+
+            # Set other columns
+            cells[2].text = str(question_row['Diff_Level'])
+            cells[3].text = str(question_row['Blooms_Level'])
+            cells[4].text = str(question_row['CO'])
+            cells[5].text = str(int(question_row['Marks']))
+
+            # Apply styling to data cells
+            for i, cell in enumerate(cells):
+                if i != 1:  # All except Question column
+                    cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.size = Pt(11)
+
+        # Set column widths
+        for row in table.rows:
+            for i, cell in enumerate(row.cells):
+                cell.width = template_table_widths[i]
+
+        # Add spacing after table
+        doc.add_paragraph()
+
+    # Add end of paper
+    end_para = doc.add_paragraph()
+    end_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    end_run = end_para.add_run("*** End of Paper ***")
+    end_run.font.bold = True
+    end_run.font.size = Pt(12)
+    
+    # Remove the template table
+    if len(doc.tables) >= 3:
+        doc.tables[2]._element.getparent().remove(doc.tables[2]._element)
+    
+    # Save document
+    doc.save(word_file)
+    print(f'Master Question paper has been successfully generated: {word_file}')

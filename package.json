@@ -13,6 +13,7 @@
     "package": "electron-packager . MyApp --platform=win32 --arch=x64 --overwrite"
   },
   "dependencies": {
+    "jszip": "^3.10.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.0.2",
