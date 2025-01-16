@@ -1,8 +1,9 @@
-// ExcelUpload.jsx
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import "./MainPage.css";
 import logo from "./assets/logo.png";
+
+const API_URL = 'http://localhost:8000';
 
 const MainPage = () => {
   const [file, setFile] = useState(null);
@@ -17,6 +18,7 @@ const MainPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGenerated, setIsGenerated] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [lastGeneratedData, setLastGeneratedData] = useState(null);
 
   const readExcelFile = (file) => {
     const reader = new FileReader();
@@ -25,21 +27,17 @@ const MainPage = () => {
         const data = new Uint8Array(e.target.result);
         const wb = XLSX.read(data, { type: "array" });
         setWorkbook(wb);
-
-        // Get all sheet names
+        
         const sheets = wb.SheetNames;
         setSheetNames(sheets);
-
-        // Set first sheet as default and load its data
+        
         if (sheets.length > 0) {
           setCurrentSheet(sheets[0]);
           loadSheetData(wb, sheets[0]);
         }
       } catch (error) {
         console.error("Error parsing Excel file:", error);
-        alert(
-          "Error reading the Excel file. Please make sure it's a valid Excel document."
-        );
+        alert("Error reading the Excel file. Please make sure it's a valid Excel document.");
       }
     };
 
@@ -58,16 +56,9 @@ const MainPage = () => {
     if (jsonData.length > 0) {
       const headers = jsonData[0];
       const rows = jsonData.slice(1);
-
-      setPreviewData({
-        headers,
-        rows,
-      });
+      setPreviewData({ headers, rows });
     } else {
-      setPreviewData({
-        headers: [],
-        rows: [],
-      });
+      setPreviewData({ headers: [], rows: [] });
       alert("The selected sheet appears to be empty");
     }
   };
@@ -81,11 +72,9 @@ const MainPage = () => {
   };
 
   const handleFileSelect = (selectedFile) => {
-    if (
-      selectedFile &&
-      (selectedFile.name.endsWith(".xlsx") ||
-        selectedFile.name.endsWith(".xls"))
-    ) {
+    if (selectedFile && 
+        (selectedFile.name.endsWith(".xlsx") || 
+         selectedFile.name.endsWith(".xls"))) {
       setFile(selectedFile);
       readExcelFile(selectedFile);
     } else {
@@ -113,23 +102,89 @@ const MainPage = () => {
     }
   };
 
-  const handleSendToBackend = () => {
+  const downloadFile = async (response) => {
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get('content-disposition');
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1].replace(/['"]/g, '')
+      : `QuestionPaper_Set${selectedSet}.docx`;
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleSendToBackend = async () => {
     if (!file || !selectedSet) {
       alert("Please upload a file and select a set first");
       return;
     }
 
     setIsProcessing(true);
-    // Simulate backend processing
-    setTimeout(() => {
-      setIsProcessing(false);
+
+    try {
+      const formData = new FormData();
+      formData.append('excel_file', file);
+      formData.append('word_file', `QuestionPaper_Set${selectedSet}`);
+      formData.append('set_number', selectedSet); // Set I, Set II, Set III
+
+      const response = await fetch(`${API_URL}/generate`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate question paper');
+      }
+
+      setLastGeneratedData({ file, selectedSet });
       setIsGenerated(true);
-    }, 2000);
+    } catch (error) {
+      console.error('Error generating question paper:', error);
+      alert(error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDownloadQuestionPaper = async () => {
+    if (!lastGeneratedData) {
+      alert('Please generate a question paper first');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const formData = new FormData();
+      formData.append('excel_file', lastGeneratedData.file);
+      formData.append('word_file', `QuestionPaper_Set${lastGeneratedData.selectedSet}`);
+
+      const response = await fetch(`${API_URL}/generate`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download question paper');
+      }
+
+      await downloadFile(response);
+    } catch (error) {
+      console.error('Error downloading question paper:', error);
+      alert(error.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div className="container">
-      {/* Header */}
       <header className="header">
         <img src={logo} alt="college-logo" className="logo" />
         <div className="header-content">
@@ -146,14 +201,12 @@ const MainPage = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="upload-card">
         <h2 className="card-title">Upload Excel File</h2>
         <p className="card-description">
           Upload your Excel file (.xlsx or .xls) to generate question papers
         </p>
 
-        {/* File Upload */}
         <div
           className={`drop-zone ${isDragActive ? "active" : ""}`}
           onDragEnter={handleDrag}
@@ -178,7 +231,6 @@ const MainPage = () => {
           )}
         </div>
 
-        {/* Sheet Selector */}
         {sheetNames.length > 0 && (
           <div className="sheet-selector">
             <label htmlFor="sheet-select">Select Sheet: </label>
@@ -197,7 +249,6 @@ const MainPage = () => {
           </div>
         )}
 
-        {/* Preview */}
         {previewData.headers.length > 0 && (
           <div className="table-container">
             <table className="preview-table">
@@ -223,19 +274,17 @@ const MainPage = () => {
           </div>
         )}
 
-        {/* Set Selection */}
         <select
           className="set-select"
           value={selectedSet}
           onChange={(e) => setSelectedSet(e.target.value)}
         >
           <option value="">Select Set</option>
-          <option value="A">Set I</option>
-          <option value="B">Set II</option>
-          <option value="C">Set III</option>
+          <option value="I">Set I</option>
+          <option value="II">Set II</option>
+          <option value="III">Set III</option>
         </select>
 
-        {/* Action Buttons */}
         <div className="button-group">
           <button
             className="button primary-button"
@@ -249,13 +298,14 @@ const MainPage = () => {
             <>
               <button
                 className="button secondary-button"
-                onClick={() => console.log("Download Primary")}
+                onClick={handleDownloadQuestionPaper}
+                disabled={isProcessing}
               >
                 Question Paper
               </button>
               <button
                 className="button secondary-button"
-                onClick={() => console.log("Download Master")}
+                disabled={true}
               >
                 Master Question Paper
               </button>

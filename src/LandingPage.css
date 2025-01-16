@@ -18,6 +18,7 @@ html {
 
 .content {
   text-align: center;
+  width:50%;
   color: rgb(0, 0, 0);
   background-color: rgba(252, 245, 243, 0.836);
   border-radius: 10px;

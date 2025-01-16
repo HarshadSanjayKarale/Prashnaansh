@@ -48,7 +48,7 @@ html {
 form {
   display: flex;
   flex-direction: column;
-  padding: 100px; /* Add padding for spacing inside the card */
+  padding: 75px; /* Add padding for spacing inside the card */
   background-color: rgba(255, 255, 255, 0.7); /* Transparent white background */
   border: 1px solid rgba(255, 255, 255, 0.3); /* Slight border to match the theme */
   border-radius: 8px;
