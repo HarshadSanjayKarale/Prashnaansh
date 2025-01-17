@@ -8,6 +8,17 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from starlette.middleware.wsgi import WSGIMiddleware
 import zipfile
 import io
+from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+import random
+import string
+from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -161,6 +172,112 @@ def generate_question_paper_app():
             pass
 
 asgi_app = WSGIMiddleware(app)
+
+
+
+# Store OTPs with expiration
+otp_store = {}
+
+def generate_otp():
+    """Generate a 6-digit OTP"""
+    return ''.join(random.choices(string.digits, k=6))
+
+def send_otp_email(otp):
+    """Send OTP via email"""
+    sender_email = os.getenv('EMAIL_ADDRESS')
+    sender_password = os.getenv('EMAIL_PASSWORD')
+    receiver_email = "harshad.karale22@pccoepune.org"
+
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = "Login OTP Verification"
+
+    body = f"""
+    Dear User,
+
+    Your OTP for login verification is: {otp}
+
+    This OTP will expire in 5 minutes.
+
+    Best regards,
+    PCCOE Exam System
+    """
+
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.send_message(message)
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
+def store_otp(username, otp):
+    """Store OTP with 5-minute expiration"""
+    otp_store[username] = {
+        'otp': otp,
+        'expires_at': datetime.now() + timedelta(minutes=5)
+    }
+
+def verify_otp(username, otp):
+    """Verify OTP and check expiration"""
+    if username in otp_store:
+        stored_data = otp_store[username]
+        if datetime.now() <= stored_data['expires_at'] and stored_data['otp'] == otp:
+            del otp_store[username]  # Remove used OTP
+            return True
+    return False
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    print("Given call to /api/login")
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    
+    valid_username = os.getenv('LOGIN_USERNAME')
+    valid_password = os.getenv('LOGIN_PASSWORD')
+    
+    if username == valid_username and password == valid_password:
+        otp = generate_otp()
+        if send_otp_email(otp):
+            store_otp(username, otp)
+            return jsonify({
+                'status': 'success',
+                'message': 'OTP has been sent to your email'
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to send OTP email'
+            }), 500
+    
+    return jsonify({
+        'status': 'error',
+        'message': 'Invalid credentials'
+    }), 401
+
+@app.route('/api/verify-otp', methods=['POST'])
+def verify():
+    data = request.get_json()
+    username = data.get('username')
+    otp = data.get('otp')
+    
+    if verify_otp(username, otp):
+        return jsonify({
+            'status': 'success',
+            'message': 'OTP verified successfully',
+            'token': 'your-jwt-token-here'  # In production, generate a proper JWT
+        })
+    
+    return jsonify({
+        'status': 'error',
+        'message': 'Invalid or expired OTP'
+    }), 401
+
 
 def create_app():
     return asgi_app
