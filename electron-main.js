@@ -9,15 +9,13 @@ const __dirname = path.dirname(__filename);
 
 app.on('ready', () => {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1700,
+    height: 1000,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
     },
   });
-
-  mainWindow.webContents.openDevTools();
 
   const startUrl = process.env.NODE_ENV === 'development'
     ? 'http://localhost:5173'

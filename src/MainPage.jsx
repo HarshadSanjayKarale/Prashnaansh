@@ -4,7 +4,7 @@ import "./MainPage.css";
 import logo from "./assets/logo.png";
 import JSZip from 'jszip';
 
-const API_URL = "http://localhost:8000";
+const API_URL = "http://127.0.0.1:8000/";
 
 const MainPage = () => {
   const [file, setFile] = useState(null);
@@ -73,7 +73,7 @@ const MainPage = () => {
     }
   };
 
-  const Download = async (url,paperType) => {
+  const Download = (url,paperType) => {
     
     const filename2 = `QuestionPaper_Set${selectedSet}_${paperType}.docx`;
     const link2 = document.createElement('a');
