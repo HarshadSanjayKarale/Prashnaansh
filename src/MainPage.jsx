@@ -24,6 +24,51 @@ const MainPage = () => {
   const [master, setMaster] = useState(null);
   
 
+  // Function to download log content as a file
+const downloadLog = (content) => {
+  const element = document.createElement('a');
+  const file = new Blob([content], {type: 'text/plain'});
+  element.href = URL.createObjectURL(file);
+  element.download = 'Logfile.txt';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+};
+
+// Function to read existing log content
+const readLogFile = async () => {
+  try {
+    const response = await fetch('C:/Users/sachi/OneDrive/Desktop/ExamEngine/Logfile.txt');
+    return await response.text();
+  } catch (error) {
+    console.log('No existing log file found or unable to read it');
+    return '';
+  }
+};
+
+const logButtonClick = async () => {
+  // Create timestamp
+  const now = new Date();
+  const timestamp = now.toLocaleString();
+  
+  // Create log message
+  const logMessage = `[${timestamp}] Generate Question Papers button clicked\n`;
+  
+  try {
+    // Get existing content
+    const existingContent = await readLogFile();
+    
+    // Combine existing content with new log
+    const newContent = existingContent + logMessage;
+    
+    // Download updated log file
+    downloadLog(newContent);
+    
+    console.log('Successfully logged button click');
+  } catch (error) {
+    console.error('Error writing to log file:', error);
+  }
+};
 
   const handleDownloadFromZip = async (response) => {
     const zipBlob = await response.blob();
@@ -193,6 +238,7 @@ const MainPage = () => {
       alert("Please upload a file and select a set first");
       return;
     }
+    await logButtonClick();
 
     setIsProcessing(true);
 

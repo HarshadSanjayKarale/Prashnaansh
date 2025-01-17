@@ -6,9 +6,11 @@ import MainPage from "./MainPage";
 import RedirectOnCtrlR from "./RedirectOnCtrlR"; // For redirecting on Ctrl + R
 import { AuthProvider } from "./AuthContext"; // Import the AuthProvider
 import ProtectedRoute from "./ProtectedRoute"; // Import the ProtectedRoute component
+import SecurityWrapper from "./SecurityWrapper";
 
 function App() {
   return (
+    <SecurityWrapper>
     <AuthProvider> {/* Wrap the app in the AuthProvider */}
       <Router>
         <RedirectOnCtrlR /> {/* Redirect on Ctrl + R */}
@@ -23,6 +25,7 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+    </SecurityWrapper>
   );
 }
 
