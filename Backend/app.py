@@ -16,6 +16,8 @@ from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from pymongo import MongoClient
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -30,6 +32,9 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'xlsx', 'xls'}
 
@@ -39,9 +44,13 @@ def home():
 
 @app.route('/generate', methods=['POST'])
 def generate_question_paper_app():
+    response_status = None
+    error_message = None
     try:
         if 'excel_file' not in request.files:
-            return {'error': 'No file part'}, 400
+            response_status = 400
+            error_message = 'No file part'
+            return {'error': error_message}, response_status
         
         excel_file = request.files['excel_file']
         word_file = request.form.get('word_file')
@@ -148,6 +157,12 @@ def generate_question_paper_app():
                 as_attachment=True,
                 download_name=f'QuestionPaper_Set{set_number}.zip'
             )
+            response_status = 200
+            log_api_request(
+                endpoint='/generate',
+                request_data={'set_number': set_number, 'filename': excel_filename},
+                response_status=response_status
+            )
             
             response.headers['Access-Control-Allow-Origin'] = '*'
             return response
@@ -233,6 +248,8 @@ def verify_otp(username, otp):
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    response_status = None
+    error_message = None
     print("Given call to /api/login")
     data = request.get_json()
     username = data.get('username')
@@ -245,11 +262,25 @@ def login():
         otp = generate_otp()
         if send_otp_email(otp):
             store_otp(username, otp)
+            response_status = 200
+            log_api_request(
+                endpoint='/api/login',
+                request_data={'username': username},
+                response_status=response_status
+            )
             return jsonify({
                 'status': 'success',
                 'message': 'OTP has been sent to your email'
             })
         else:
+            response_status = 500
+            error_message = 'Failed to send OTP email'
+            log_api_request(
+                endpoint='/api/login',
+                request_data={'username': username},
+                response_status=response_status,
+                error=error_message
+            )
             return jsonify({
                 'status': 'error',
                 'message': 'Failed to send OTP email'
@@ -277,6 +308,41 @@ def verify():
         'status': 'error',
         'message': 'Invalid or expired OTP'
     }), 401
+
+
+# MongoDB Atlas connection setup
+MONGO_URI = os.getenv('MONGO_URI')  # Add this to your .env file
+client = MongoClient(MONGO_URI)
+db = client['api_logs']  # Database name
+logs_collection = db['endpoint_logs']  # Collection name
+
+def log_api_request(endpoint, request_data=None, response_status=None, error=None):
+    """
+    Log API requests to MongoDB Atlas
+    
+    Parameters:
+    - endpoint: str - The API endpoint that was accessed
+    - request_data: dict - Request data (optional)
+    - response_status: int - HTTP response status code
+    - error: str - Error message if any
+    """
+    try:
+        log_entry = {
+            'timestamp': datetime.utcnow(),
+            'endpoint': endpoint,
+            'method': request.method,
+            'ip_address': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent'),
+            'request_data': request_data,
+            'response_status': response_status,
+            'error': error
+        }
+        
+        logs_collection.insert_one(log_entry)
+        
+    except Exception as e:
+        print(f"Error logging to MongoDB: {str(e)}")
+
 
 
 def create_app():
