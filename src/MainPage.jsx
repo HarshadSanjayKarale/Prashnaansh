@@ -199,12 +199,31 @@ const readLogFile = async () => {
     window.URL.revokeObjectURL(url);
   };
 
+
+  const handleApiError = async (response) => {
+    if (response.status === 401) {
+      // Clear stored token and other auth data
+      localStorage.removeItem('token');
+      
+      // Show alert
+      alert("Your session has expired. Please login again.");
+      
+      // Redirect to login page
+      window.location.href = '/login'; // Adjust the login route as per your application
+      return;
+    }
+  
+    // Handle other errors
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to generate question paper");
+  };
+  
+
   const handleSendToBackend = async () => {
     if (!file || !selectedSet) {
       alert("Please upload a file and select a set first");
       return;
     }
-    await logButtonClick();
 
     setIsProcessing(true);
 
@@ -213,15 +232,17 @@ const readLogFile = async () => {
       formData.append("excel_file", file);
       formData.append("word_file", `QuestionPaper_Set${selectedSet}`);
       formData.append("set_number", selectedSet);
-
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/generate`, {
         method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate question paper");
+        await handleApiError(response);
       }
 
       setLastGeneratedData({ file, selectedSet });

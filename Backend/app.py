@@ -17,7 +17,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pymongo import MongoClient
-from datetime import datetime
+import jwt
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 
 # Load environment variables
 load_dotenv()
@@ -31,7 +33,77 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-secret-key')  # Add this to your .env file
+TOKEN_EXPIRATION = 1 
 
+def generate_token(user_id):
+    """Generate a JWT token with 20-minute expiration"""
+    try:
+        payload = {
+            'exp': datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRATION),
+            'iat': datetime.utcnow(),
+            'sub': user_id
+        }
+        return jwt.encode(
+            payload,
+            SECRET_KEY,
+            algorithm='HS256'
+        )
+    except Exception as e:
+        return None
+
+def verify_token(token):
+    """Verify the JWT token"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return payload['sub']
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+def verify_token(token):
+    """Verify the JWT token"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return payload['sub']
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+def token_required(f):
+    """Decorator to protect routes with JWT token verification"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        
+        # Get token from header
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            try:
+                token = auth_header.split(" ")[1]  # Bearer <token>
+            except IndexError:
+                return jsonify({'message': 'Invalid token format'}), 401
+        
+        if not token:
+            return jsonify({'message': 'Token is missing'}), 401
+        
+        # Verify token
+        user_id = verify_token(token)
+        if not user_id:
+            return jsonify({'message': 'Token is invalid or expired'}), 401
+        
+        # Log token verification
+        log_api_request(
+            endpoint=request.endpoint,
+            request_data={'user_id': user_id},
+            response_status=200
+        )
+        
+        return f(*args, **kwargs)
+    
+    return decorated
 
 
 
@@ -43,6 +115,7 @@ def home():
     return "Welcome to the Question Paper Generator API!", 200
 
 @app.route('/generate', methods=['POST'])
+@token_required
 def generate_question_paper_app():
     response_status = None
     error_message = None
@@ -298,11 +371,20 @@ def verify():
     otp = data.get('otp')
     
     if verify_otp(username, otp):
-        return jsonify({
-            'status': 'success',
-            'message': 'OTP verified successfully',
-            'token': 'your-jwt-token-here'  # In production, generate a proper JWT
-        })
+        token = generate_token(username)
+        print(f"**************************Token: {token}")
+        if not token:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to generate token'
+            }), 500
+        else:
+            return jsonify({
+                'status': 'success',
+                'message': 'OTP verified successfully',
+                'token': token,
+                'expires_in': TOKEN_EXPIRATION * 60 
+            })
     
     return jsonify({
         'status': 'error',
