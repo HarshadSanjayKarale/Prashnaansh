@@ -1,0 +1,57 @@
+/* combined-view.css */
+.combined-container {
+  position: fixed;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 999;
+}
+
+.button-top {
+  position: fixed;
+  bottom: 96px; /* 24px + 56px + 16px (bottom margin + button height + gap) */
+  right: 24px;
+}
+
+.button-bottom {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+}
+
+/* Ensure proper z-index stacking for modals */
+.student-overlay {
+  z-index: 1000;
+}
+
+.logs-overlay {
+  z-index: 1000;
+}
+
+.tnc-overlay {
+  z-index: 1100;
+}
+
+/* Make the buttons consistent in size */
+.student-button,
+.logs-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #9ac1f3;
+  border: 1px solid #9ac1f3;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: transform 0.2s;
+}
+
+.student-button:hover,
+.logs-button:hover {
+  transform: scale(1.005);
+  background:rgb(93, 155, 237);
+}

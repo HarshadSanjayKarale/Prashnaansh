@@ -3,6 +3,9 @@ import * as XLSX from "xlsx";
 import "./MainPage.css";
 import logo from "./assets/logo.png";
 import JSZip from 'jszip';
+import { LoginLogs } from "./login-logs";
+import StudentsList from "./StudentsList";
+import CombinedView from "./CombinedView";
 
 const API_URL = "http://127.0.0.1:8000/";
 
@@ -423,7 +426,11 @@ const readLogFile = async () => {
             Developed by @SHAAN
             </h4>
       </div>
+      {/* <StudentsList/>
+      <LoginLogs/> */}
+      <CombinedView/>
     </div>
+    
   );
 };
 

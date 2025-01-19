@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, make_response, Blueprint
 from flask_cors import CORS
 import os
 import tempfile
@@ -20,6 +20,9 @@ from pymongo import MongoClient
 import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+import json
+from bson import json_util
+
 
 # Load environment variables
 load_dotenv()
@@ -94,12 +97,6 @@ def token_required(f):
         if not user_id:
             return jsonify({'message': 'Token is invalid or expired'}), 401
         
-        # Log token verification
-        log_api_request(
-            endpoint=request.endpoint,
-            request_data={'user_id': user_id},
-            response_status=200
-        )
         
         return f(*args, **kwargs)
     
@@ -258,6 +255,10 @@ def generate_question_paper_app():
         except Exception as e:
             print(f"Error cleaning up files: {str(e)}")
             pass
+
+# Define and register the auth blueprint
+auth_bp = Blueprint('auth', __name__)
+app.register_blueprint(auth_bp)
 
 asgi_app = WSGIMiddleware(app)
 
@@ -425,10 +426,84 @@ def log_api_request(endpoint, request_data=None, response_status=None, error=Non
     except Exception as e:
         print(f"Error logging to MongoDB: {str(e)}")
 
+@app.route('/api/logs', methods=['GET'])
+def get_logs():
+    try:
+        # Fetch logs from MongoDB, sorted by timestamp in descending order
+        logs = logs_collection.find().sort('timestamp', -1).limit(100)
+        
+        # Convert MongoDB cursor to list and handle ObjectId serialization
+        logs_list = json.loads(json_util.dumps(logs))
+        
+        return jsonify({
+            'status': 'success',
+            'data': logs_list
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+    
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    try:
+        # Get token from header
+        auth_header = request.headers.get('Authorization')
+        
+        if not auth_header:
+            return jsonify({
+                'status': 'error',
+                'message': 'No authorization token provided'
+            }), 401
+
+        # Extract token
+        try:
+            token = auth_header.split(" ")[1]
+        except IndexError:
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid token format'
+            }), 401
+
+        # Verify token
+        user_id = verify_token(token)
+        if not user_id:
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid or expired token'
+            }), 401
+
+        # Log successful logout
+        log_api_request(
+            endpoint='/api/logout',
+            request_data={'user_id': user_id},
+            response_status=200
+        )
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Successfully logged out'
+        }), 200
+        
+    except Exception as e:
+        # Log error
+        log_api_request(
+            endpoint='/api/logout',
+            response_status=500,
+            error=str(e)
+        )
+        
+        return jsonify({
+            'status': 'error',
+            'message': f'Logout failed: {str(e)}'
+        }), 500
 
 
 def create_app():
     return asgi_app
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
