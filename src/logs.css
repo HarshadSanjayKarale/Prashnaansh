@@ -1,0 +1,141 @@
+.logs-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgb(36, 12, 135);
+  border: 1px solid #9ac1f3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: transform 0.2s;
+}
+
+.logs-button:hover {
+  transform: scale(1.005);
+}
+
+.logs-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.logs-container {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.logs-header {
+  background: #001e2b;
+  color: white;
+  padding: 24px;
+}
+
+.logs-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.logs-header p {
+  margin: 8px 0 0;
+  opacity: 0.8;
+}
+
+.logs-content {
+  padding: 16px;
+}
+
+.logs-search {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.logs-search input {
+  width: 90.3%;
+  padding: 8px 16px 8px 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.logs-search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
+.logs-list {
+  overflow-y: auto;
+  max-height: 400px;
+  padding-right: 16px;
+}
+
+.log-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+.log-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.log-item-username {
+  font-weight: 600;
+}
+
+.log-item-date {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.log-item-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.log-item-detail span {
+  color: #64748b;
+}
+
+.log-item-error {
+  color: #ef4444;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.success-icon {
+  color: #22c55e;
+}
+
+.error-icon {
+  color: #ef4444;
+}

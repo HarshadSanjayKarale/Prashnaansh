@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import "./LoginPage.css";
 import logo1 from "./assets/logo1.png";
+import { LoginLogs } from "./login-logs";
 
 function LoginPage() {
   const [otp, setOTP] = useState(Array(6).fill(""));
@@ -178,6 +179,7 @@ function LoginPage() {
           )}
         </form>
       )}
+      <LoginLogs/>
     </div>
   );
 }

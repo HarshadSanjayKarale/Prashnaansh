@@ -5,6 +5,7 @@ import "./LandingPage.css";
 import logo from "./assets/logo.png";
 import logo1 from "./assets/logo1.png";
 
+
 function LandingPage() {
   const navigate = useNavigate();
 
@@ -91,23 +92,23 @@ function LandingPage() {
   }, []);
 
   return (
-    <div 
-      className="landing-page" 
+    <div
+      className="landing-page"
       onClick={() => handleNavigation()}
       tabIndex={0}
     >
       <div className="content">
         <div className="logo-container">
-          <img 
-            src={logo} 
-            className="logo" 
-            alt="College Logo" 
+          <img
+            src={logo}
+            className="logo"
+            alt="College Logo"
             draggable="false"
           />
-          <img 
-            src={logo1} 
-            className="logo1" 
-            alt="System Logo" 
+          <img
+            src={logo1}
+            className="logo1"
+            alt="System Logo"
             draggable="false"
           />
         </div>
