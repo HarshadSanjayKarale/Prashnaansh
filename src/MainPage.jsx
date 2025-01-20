@@ -7,7 +7,7 @@ import { LoginLogs } from "./login-logs";
 import StudentsList from "./StudentsList";
 import CombinedView from "./CombinedView";
 
-const API_URL = "http://127.0.0.1:8000/";
+const API_URL = "https://web-production-a502.up.railway.app";
 
 const MainPage = () => {
   const [file, setFile] = useState(null);

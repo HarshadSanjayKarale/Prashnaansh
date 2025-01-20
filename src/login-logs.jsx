@@ -25,7 +25,7 @@ export function LoginLogs() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:8000/api/logs');
+      const response = await fetch('https://web-production-a502.up.railway.app//api/logs');
       if (!response.ok) {
         throw new Error('Failed to fetch logs');
       }
@@ -59,7 +59,7 @@ export function LoginLogs() {
         return;
       }
   
-      const response = await fetch('http://localhost:8000/api/logout', {
+      const response = await fetch('https://web-production-a502.up.railway.app/api/logout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

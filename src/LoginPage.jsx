@@ -23,7 +23,7 @@ function LoginPage() {
     const password = e.target.password.value;
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/login', {
+      const response = await fetch('https://web-production-a502.up.railway.app/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ function LoginPage() {
       if (response.ok) {
         setUsername(formUsername);
         setShowOTP(true);
-        setErrorMessage("OTP has been sent to harshadkarale22@pccoepune.org");
+        setErrorMessage("OTP has been sent to harshad.karale22@pccoepune.org");
       } else {
         setErrorMessage(data.message || "Invalid username or password. Please try again.");
       }
@@ -59,7 +59,7 @@ function LoginPage() {
     const enteredOtp = otp.join("");
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/verify-otp', {
+      const response = await fetch('https://web-production-a502.up.railway.app/api/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
