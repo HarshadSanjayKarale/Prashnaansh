@@ -25,7 +25,7 @@ export function LoginLogs() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('https://web-production-a502.up.railway.app//api/logs');
+      const response = await fetch('https://web-production-a502.up.railway.app/api/logs');
       if (!response.ok) {
         throw new Error('Failed to fetch logs');
       }
