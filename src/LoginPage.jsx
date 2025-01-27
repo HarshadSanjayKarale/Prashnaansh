@@ -23,7 +23,7 @@ function LoginPage() {
     const password = e.target.password.value;
 
     try {
-      const response = await fetch('https://web-production-a502.up.railway.app/api/login', {
+      const response = await fetch('http://127.0.0.1:8000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ function LoginPage() {
     const enteredOtp = otp.join("");
 
     try {
-      const response = await fetch('https://web-production-a502.up.railway.app/api/verify-otp', {
+      const response = await fetch('http://127.0.0.1:8000/api/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
