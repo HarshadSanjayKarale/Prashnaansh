@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "electron .",
-    "package": "electron-packager . MyApp --platform=win32 --arch=x64 --overwrite"
+    "package": "electron-packager . ExamEngine --platform=win32 --arch=x64 --overwrite --asar --out=release-builds"
   },
   "dependencies": {
     "jszip": "^3.10.1",
@@ -26,6 +26,7 @@
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^33.2.1",
+    "electron-packager": "^17.1.2",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
