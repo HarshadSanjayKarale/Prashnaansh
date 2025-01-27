@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import "./MainPage.css";
 import logo from "./assets/logo.png";
-import JSZip from 'jszip';
+import JSZip from "jszip";
 import { LoginLogs } from "./login-logs";
 import StudentsList from "./StudentsList";
 import CombinedView from "./CombinedView";
@@ -25,37 +25,37 @@ const MainPage = () => {
   const [lastGeneratedData, setLastGeneratedData] = useState(null);
   const [normal, setNormal] = useState(null);
   const [master, setMaster] = useState(null);
-  
 
-// Function to read existing log content
-const readLogFile = async () => {
-  try {
-    const response = await fetch('C:/Users/sachi/OneDrive/Desktop/ExamEngine/Logfile.txt');
-    return await response.text();
-  } catch (error) {
-    console.log('No existing log file found or unable to read it');
-    return '';
-  }
-};
-
+  // Function to read existing log content
+  const readLogFile = async () => {
+    try {
+      const response = await fetch(
+        "C:/Users/sachi/OneDrive/Desktop/ExamEngine/Logfile.txt"
+      );
+      return await response.text();
+    } catch (error) {
+      console.log("No existing log file found or unable to read it");
+      return "";
+    }
+  };
 
   const handleDownloadFromZip = async (response) => {
     const zipBlob = await response.blob();
     const zip = new JSZip();
-    
+
     try {
       const loadedZip = await zip.loadAsync(zipBlob);
-      
+
       // Find the appropriate file in the zip based on paperType
       const files = Object.values(loadedZip.files);
-      const targetFile1 = files.find(file => {
+      const targetFile1 = files.find((file) => {
         const filename = file.name.toLowerCase();
-        return filename.includes('master') 
+        return filename.includes("master");
       });
 
-      const targetFile2 = files.find(file => {
+      const targetFile2 = files.find((file) => {
         const filename = file.name.toLowerCase();
-        return !filename.includes('master');
+        return !filename.includes("master");
       });
 
       if (!targetFile1) {
@@ -65,39 +65,35 @@ const readLogFile = async () => {
         throw new Error(`paper not found in the zip file`);
       }
 
-
       // Extract and download the specific file
-      const content = await targetFile1.async('blob');
-      
+      const content = await targetFile1.async("blob");
+
       const url = window.URL.createObjectURL(content);
-     
+
       setMaster(url);
 
-       // Extract and download the specific file
-       const content2 = await targetFile2.async('blob');
-       
-       const url2 = window.URL.createObjectURL(content2);
-       
+      // Extract and download the specific file
+      const content2 = await targetFile2.async("blob");
+
+      const url2 = window.URL.createObjectURL(content2);
+
       setNormal(url2);
-
-
     } catch (error) {
-      console.error('Error extracting file from zip:', error);
+      console.error("Error extracting file from zip:", error);
       alert(`Error downloading ${paperType} paper: ${error.message}`);
     }
   };
 
-  const Download = (url,paperType) => {
-    
+  const Download = (url, paperType) => {
     const filename2 = `QuestionPaper_Set${selectedSet}_${paperType}.docx`;
-    const link2 = document.createElement('a');
-       link2.href = url;
-       link2.setAttribute('download', filename2);
-       document.body.appendChild(link2);
-       link2.click();
-       link2.remove();
-       window.URL.revokeObjectURL(url)
-  }
+    const link2 = document.createElement("a");
+    link2.href = url;
+    link2.setAttribute("download", filename2);
+    document.body.appendChild(link2);
+    link2.click();
+    link2.remove();
+    window.URL.revokeObjectURL(url);
+  };
 
   const readExcelFile = (file) => {
     const reader = new FileReader();
@@ -202,25 +198,23 @@ const readLogFile = async () => {
     window.URL.revokeObjectURL(url);
   };
 
-
   const handleApiError = async (response) => {
     if (response.status === 401) {
       // Clear stored token and other auth data
-      localStorage.removeItem('token');
-      
+      localStorage.removeItem("token");
+
       // Show alert
       alert("Your session has expired. Please login again.");
-      
+
       // Redirect to login page
-      window.location.href = '/login'; // Adjust the login route as per your application
+      window.location.href = "/login"; // Adjust the login route as per your application
       return;
     }
-  
+
     // Handle other errors
     const errorData = await response.json();
     throw new Error(errorData.error || "Failed to generate question paper");
   };
-  
 
   const handleSendToBackend = async () => {
     if (!file || !selectedSet) {
@@ -235,11 +229,11 @@ const readLogFile = async () => {
       formData.append("excel_file", file);
       formData.append("word_file", `QuestionPaper_Set${selectedSet}`);
       formData.append("set_number", selectedSet);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/generate`, {
         method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -250,8 +244,7 @@ const readLogFile = async () => {
 
       setLastGeneratedData({ file, selectedSet });
       setIsGenerated(true);
-      handleDownloadFromZip(response, 'master');
-      
+      handleDownloadFromZip(response, "master");
     } catch (error) {
       console.error("Error generating question paper:", error);
       alert(error.message);
@@ -405,32 +398,34 @@ const readLogFile = async () => {
           </button>
 
           {isGenerated && (
-          <>
-            <button
-              className="button secondary-button"
-              onClick={() => Download(normal,'Normal') }
-              disabled={isProcessing}
-            >
-              Download Normal Paper
-            </button>
-            <button
-              className="button secondary-button"
-              onClick={() => Download(master,'Master') }
-              disabled={isProcessing}
-            >
-              Download Master Paper
-            </button>
-            </>)}
+            <>
+              <button
+                className="button secondary-button"
+                onClick={() => Download(normal, "Normal")}
+                disabled={isProcessing}
+              >
+                Download Normal Paper
+              </button>
+              <button
+                className="button secondary-button"
+                onClick={() => Download(master, "Master")}
+                disabled={isProcessing}
+              >
+                Download Master Paper
+              </button>
+            </>
+          )}
         </div>
-            <h4 align="end">
-            Developed by @SHAAN
-            </h4>
+        <div className="footer">
+          <h5 align="end" style={{ fontSize: "12px", margin: "5px 0 0" }}>
+            &copy; {new Date().getFullYear()} Team AANSH. All rights reserved.
+          </h5>
+        </div>
       </div>
       {/* <StudentsList/>
       <LoginLogs/> */}
-      <CombinedView/>
+      <CombinedView />
     </div>
-    
   );
 };
 
