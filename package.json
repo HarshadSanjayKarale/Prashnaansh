@@ -1,5 +1,5 @@
 {
-  "name": "exam-engine-frontend",
+  "name": "prashnaansh",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "electron .",
-    "package": "electron-packager . ExamEngine --platform=win32 --arch=x64 --overwrite --asar --out=release-builds"
+    "package": "electron-packager . PRASHNAANSH --platform=win32 --arch=x64 --overwrite --asar --out=release-builds"
   },
   "dependencies": {
     "jszip": "^3.10.1",
