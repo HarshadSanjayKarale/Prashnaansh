@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 import logo from "./assets/logo.png";
-import logo1 from "./assets/logo1.png";
+import logo1 from "./assets/PRASHNAANSH.png";
 
 
 function LandingPage() {
@@ -112,9 +112,9 @@ function LandingPage() {
             draggable="false"
           />
         </div>
-        <h1 className="system-name typing-effect">
-          Welcome to <span className="system-name-main">Exam Engine</span>
-        </h1>
+        <h3 className="system-name typing-effect">
+          Welcome to <span className="system-name-main">PRASHNAANSH</span>
+        </h3>
       </div>
     </div>
   );

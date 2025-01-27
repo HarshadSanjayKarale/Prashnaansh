@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import "./LoginPage.css";
 import logo1 from "./assets/PRASHNAANSH.png";
+import CombinedView from "./CombinedView";
 
 function LoginPage() {
   const [otp, setOTP] = useState(Array(6).fill(""));
@@ -177,6 +178,7 @@ function LoginPage() {
           )}
         </form>
       )}
+      {/* <CombinedView/> */}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Aviraj from './assets/Aviraj.png';
 import Ashirwad from './assets/Ashirwad.jpg';
 import Sujit from './assets/Sujit.jpg';
 import Harshad from './assets/Harshad.jpg';
+import teamaansh1 from './assets/Teamaansh1.jpeg';
 
 export default function StudentList(){
   const [isOpen, setIsOpen] = useState(false);
@@ -72,10 +73,21 @@ export default function StudentList(){
       {isOpen && (
         <div className="student-overlay" onClick={() => setIsOpen(false)}>
           <div className="student-container" onClick={(e) => e.stopPropagation()}>
-            <div className="student-header">
-              <h2>Team SHAAN</h2>
-              <p>Excellence through collaboration</p>
-            </div>
+          <div className="student-header">
+  <img 
+    src={teamaansh1} 
+    alt="Team AANSH" 
+    style={{
+      width: '100%',
+      maxWidth: '500px',
+      borderRadius: '10px',
+      boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+      margin: '10px auto',
+      display: 'block',
+    }} 
+  />
+</div>
+
 
             <div className="student-content">
               <div className="student-list">
