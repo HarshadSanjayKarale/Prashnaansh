@@ -1,4 +1,13 @@
 /* Enhanced MainPage.css */
+
+/* Ensure body and html allow scrolling */
+body, html {
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -8,6 +17,7 @@
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 .header {
@@ -170,16 +180,17 @@
 
 .table-container {
   margin-top: 32px;
-  overflow-x: auto;
+  overflow: auto;
   max-height: 400px;
-  overflow-y: auto;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
 }
 
 .preview-table {
   width: 100%;
+  min-width: max-content;
   border-collapse: collapse;
   white-space: nowrap;
   background-color: white;
@@ -203,6 +214,7 @@
   color: #334155;
   letter-spacing: 0.025em;
   border-bottom: 2px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .preview-table th:last-child,

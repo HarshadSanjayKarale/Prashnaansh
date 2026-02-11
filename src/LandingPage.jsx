@@ -9,6 +9,18 @@ import logo1 from "./assets/PRASHNAANSH.png";
 function LandingPage() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Add class to body and html to prevent scrolling on landing page
+    document.body.classList.add('landing-page-active');
+    document.documentElement.classList.add('landing-page-active');
+
+    // Cleanup function to remove classes when component unmounts
+    return () => {
+      document.body.classList.remove('landing-page-active');
+      document.documentElement.classList.remove('landing-page-active');
+    };
+  }, []);
+
   const enableFullScreen = async () => {
     const elem = document.documentElement;
     

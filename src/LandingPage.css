@@ -6,8 +6,9 @@
   box-sizing: border-box;
 }
 
-body,
-html {
+/* Only apply overflow hidden when on landing page */
+body.landing-page-active,
+html.landing-page-active {
   margin: 0;
   padding: 0;
   height: 100%;
