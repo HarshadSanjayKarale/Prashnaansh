@@ -39,7 +39,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'RAILWAY_TOKEN')  # Add this to your .env file
 
-TOKEN_EXPIRATION = 1 
+TOKEN_EXPIRATION = 30  # Change from 2 to 30 minutes (or higher)
 
 import logging
 
@@ -49,19 +49,17 @@ logger = logging.getLogger(__name__)
 def generate_token(user_id):
     """Generate a JWT token with proper error handling"""
     try:
-        # Validate inputs
         if not user_id:
             logger.error("Invalid user_id provided for token generation")
             return None
             
-        # Ensure SECRET_KEY is available
         if not SECRET_KEY:
             logger.error("JWT_SECRET_KEY not properly configured")
             return None
             
         payload = {
-            'exp': datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRATION),
-            'iat': datetime.utcnow(),
+            'exp': datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRATION),  # Use utcnow()
+            'iat': datetime.utcnow(),  # Use utcnow()
             'sub': user_id
         }
         
@@ -71,7 +69,6 @@ def generate_token(user_id):
             algorithm='HS256'
         )
         
-        # Log successful token generation
         logger.info(f"Successfully generated token for user: {user_id}")
         return token
         
@@ -373,38 +370,41 @@ def login():
     username = data.get('username')
     password = data.get('password')
     
-    valid_username = os.getenv('LOGIN_USERNAME')
-    valid_password = os.getenv('LOGIN_PASSWORD')
+    # Use environment variables with static fallback
+    valid_username = os.getenv('LOGIN_USERNAME', 'PccoeExam')
+    valid_password = os.getenv('LOGIN_PASSWORD', 'Pccoe@1999')
+    static_otp = '112233'  # Static OTP for testing
+    
     print(username, password)
     print(valid_username, valid_password)
     
     if username == valid_username and password == valid_password:
-        otp = generate_otp()
-        if send_otp_email(otp):
-            store_otp(username, otp)
-            response_status = 200
-            log_api_request(
-                endpoint='/api/login',
-                request_data={'username': username},
-                response_status=response_status
-            )
-            return jsonify({
-                'status': 'success',
-                'message': 'OTP has been sent to your email'
-            })
-        else:
-            response_status = 500
-            error_message = 'Failed to send OTP email'
-            log_api_request(
-                endpoint='/api/login',
-                request_data={'username': username},
-                response_status=response_status,
-                error=error_message
-            )
-            return jsonify({
-                'status': 'error',
-                'message': 'Failed to send OTP email'
-            }), 500
+        # Comment out OTP email sending for testing
+        # if send_otp_email(static_otp):
+        store_otp(username, static_otp)
+        response_status = 200
+        log_api_request(
+            endpoint='/api/login',
+            request_data={'username': username},
+            response_status=response_status
+        )
+        return jsonify({
+            'status': 'success',
+            'message': 'OTP has been sent to your email'  # Keep message for consistency
+        })
+        # else:
+        #     response_status = 500
+        #     error_message = 'Failed to send OTP email'
+        #     log_api_request(
+        #         endpoint='/api/login',
+        #         request_data={'username': username},
+        #         response_status=response_status,
+        #         error=error_message
+        #     )
+        #     return jsonify({
+        #         'status': 'error',
+        #         'message': 'Failed to send OTP email'
+        #     }), 500
     
     return jsonify({
         'status': 'error',

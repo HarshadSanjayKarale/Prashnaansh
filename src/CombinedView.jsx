@@ -7,9 +7,6 @@ import './combined-view.css';
 export default function CombinedView() {
   return (
     <div className="combined-container">
-      <div className="button-top">
-        <StudentList />
-      </div>
       <div className="button-bottom">
         <LoginLogs />
       </div>

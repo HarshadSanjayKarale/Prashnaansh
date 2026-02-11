@@ -6,8 +6,9 @@ import JSZip from "jszip";
 import { LoginLogs } from "./login-logs";
 import StudentsList from "./StudentsList";
 import CombinedView from "./CombinedView";
+import { TermsConditionModal } from "./components/TermsConditionModal";
 
-const API_URL = "https://web-production-a502.up.railway.app";
+const API_URL = "http://127.0.0.1:8000";
 
 const MainPage = () => {
   const [file, setFile] = useState(null);
@@ -25,6 +26,7 @@ const MainPage = () => {
   const [lastGeneratedData, setLastGeneratedData] = useState(null);
   const [normal, setNormal] = useState(null);
   const [master, setMaster] = useState(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // Function to read existing log content
   const readLogFile = async () => {
@@ -286,6 +288,24 @@ const MainPage = () => {
     }
   };
 
+  const handleGenerateClick = () => {
+    if (!file || !selectedSet) {
+      alert("Please upload a file and select a set first");
+      return;
+    }
+    setShowTermsModal(true);
+  };
+
+  const handleAcceptTerms = async () => {
+    setShowTermsModal(false);
+    // Now call the generate endpoint
+    await handleSendToBackend();
+  };
+
+  const handleCloseTerms = () => {
+    setShowTermsModal(false);
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -391,7 +411,7 @@ const MainPage = () => {
         <div className="button-group">
           <button
             className="button primary-button"
-            onClick={handleSendToBackend}
+            onClick={handleGenerateClick}
             disabled={!file || !selectedSet || isProcessing}
           >
             {isProcessing ? "Processing..." : "Generate Question Papers"}
@@ -422,8 +442,13 @@ const MainPage = () => {
           </h5>
         </div>
       </div>
-      {/* <StudentsList/>
-      <LoginLogs/> */}
+
+      <TermsConditionModal
+        isOpen={showTermsModal}
+        onClose={handleCloseTerms}
+        onAccept={handleAcceptTerms}
+      ></TermsConditionModal>
+
       <CombinedView />
     </div>
   );
